@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Independent Could Your Home Be? — Solar Battery Calculator</title>
+<style>
+  :root {
+    --bg: #0a0e14;
+    --panel-solid: #131a26;
+    --border: #23303f;
+    --text: #e8ecf1;
+    --muted: #8a96a6;
+    --amber: #f2a93c;
+    --amber-dim: #f2a93c33;
+    --green: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 48px 20px 80px; }
+  .eyebrow {
+    color: var(--amber); font-size: 13px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 12px; font-weight: 700; }
+  .sub { color: var(--muted); font-size: 16px; margin-bottom: 32px; }
+  .card {
+    background: var(--panel-solid); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; margin-bottom: 16px;
+  }
+  .field { margin-bottom: 20px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: flex; justify-content: space-between; font-size: 14px;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .field label span.val { color: var(--amber); font-weight: 700; font-variant-numeric: tabular-nums; }
+  input[type="range"] { width: 100%; accent-color: var(--amber); height: 4px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  select {
+    width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+    background: #0e131c; color: var(--text); font-size: 15px;
+  }
+  .hero {
+    background: linear-gradient(180deg, var(--panel-solid), #0e131c);
+    border: 1px solid var(--amber-dim);
+    border-radius: 14px; padding: 32px 24px; margin-bottom: 16px; text-align: center;
+  }
+  .hero .label { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+  .hero .figure {
+    font-size: 56px; font-weight: 800; color: var(--green);
+    font-variant-numeric: tabular-nums; line-height: 1.05;
+  }
+  .hero .sublabel { font-size: 14px; color: var(--muted); margin-top: 10px; }
+  .compare {
+    display: flex; justify-content: space-between; margin-top: 20px;
+    padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px;
+  }
+  .compare div { text-align: center; flex: 1; }
+  .compare .amt { font-size: 20px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .compare .lbl { color: var(--muted); margin-top: 2px; }
+  .note {
+    font-size: 13px; color: var(--muted); margin-top: 16px; padding-top: 16px;
+    border-top: 1px solid var(--border); text-align: left;
+  }
+  .note.callout {
+    background: var(--amber-dim); border-radius: 8px; padding: 12px;
+    margin-top: 12px; border-top: none; padding-top: 12px; text-align: left;
+  }
+  .card-title { font-weight: 700; margin-bottom: 4px; font-size: 16px; }
+  .card-sub { color: var(--muted); font-size: 14px; margin-top: 0; margin-bottom: 16px; }
+  form { display: flex; flex-direction: column; gap: 12px; }
+  form label.form-label { font-size: 14px; color: var(--muted); margin-bottom: -6px; }
+  form input[type=text], form input[type=email] {
+    width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: #0e131c; color: var(--text); font-size: 16px;
+  }
+  button {
+    margin-top: 6px; padding: 15px; border-radius: 10px; border: none;
+    background: var(--amber); color: #17110a; font-size: 16px; font-weight: 700; cursor: pointer;
+  }
+  button:hover { background: #e0993a; }
+  .disclaimer { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Solar + Battery Storage</div>
+  <h1>You already generate your own power. Find out how independent that could actually make you.</h1>
+  <p class="sub">Enter a few details about your home to see how much of your own electricity you could genuinely rely on — and how long it could keep you going in a power cut.</p>
+
+  <div class="card">
+    <div class="field">
+      <label>Solar system size <span class="val" id="kwpVal">4.0</span> kWp</label>
+      <input type="range" id="kwp" min="1" max="10" step="0.5" value="4">
+      <div class="hint">Not sure? A typical UK 3-bed semi has a 3.5–4.5 kWp system.</div>
+    </div>
+    <div class="field">
+      <label>Battery size (yours, or one you're considering) <span class="val" id="batteryVal">6.0</span> kWh</label>
+      <input type="range" id="batterySize" min="2" max="16" step="0.5" value="6">
+    </div>
+    <div class="field">
+      <label>Your home's annual electricity use <span class="val" id="usageVal">3,400</span> kWh</label>
+      <input type="range" id="annualUsage" min="1500" max="6000" step="100" value="3400">
+      <div class="hint">Check a recent bill for your exact figure. 3,400 kWh/year is the current UK average.</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="label">You could power</div>
+    <div class="figure"><span id="selfSuffAfter">0</span>%</div>
+    <div class="sublabel">of your home's electricity from your own panels — with a battery in place</div>
+    <div class="compare">
+      <div>
+        <div class="amt"><span id="selfSuffBefore">0</span>%</div>
+        <div class="lbl">Self-sufficient<br>right now</div>
+      </div>
+      <div>
+        <div class="amt" style="color: var(--green);"><span id="selfSuffAfter2">0</span>%</div>
+        <div class="lbl">Self-sufficient<br>with a battery</div>
+      </div>
+    </div>
+    <div class="note">
+      This is the share of your total yearly electricity use that comes from your own panels rather than the grid, based on the figures above.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">How long could a battery keep the lights on in a blackout?</div>
+    <div class="field" style="margin-top:16px;">
+      <label style="margin-bottom:10px;">During an outage, I'd want to keep running:</label>
+      <select id="loadProfile">
+        <option value="0.4">Essentials only — fridge, wifi, some lights, phone charging</option>
+        <option value="1.0">Most of the home — avoiding electric heating, cooking, EV charging</option>
+      </select>
+    </div>
+    <div class="compare" style="border-top:none; padding-top:10px; margin-top:0;">
+      <div style="flex: 1;">
+        <div class="amt" style="color: var(--amber); font-size: 28px;"><span id="blackoutHours">0</span> hours</div>
+        <div class="lbl">estimated backup time, worst case<br>(stored charge only, no sun)</div>
+      </div>
+    </div>
+    <div class="note callout">
+      <strong style="color: var(--text);">For context:</strong> even on a heavily overcast UK winter day, solar panels can still generate a little — often 2–4 kWh across the whole day. Not enough to meaningfully extend the hours above, but enough to keep phones and laptops charged and run some lighting while you wait it out.
+    </div>
+    <div class="note">
+      <strong style="color: var(--text);">Important:</strong> not every battery installation supports blackout backup — it requires specific hardware (an emergency power supply / backup circuit) that isn't automatic on every system. Always confirm this specifically if it matters to you.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Want your full personalised report?</div>
+    <p class="card-sub">I'll send over your self-sufficiency and backup numbers above, plus your potential annual savings — including whether a smart export tariff could increase that further for your setup.</p>
+
+    <form action="https://formsubmit.co/YOUR_EMAIL_HERE" method="POST">
+      <input type="hidden" name="_next" value="https://YOUR_DOMAIN_HERE/battery-thanks.html">
+      <input type="hidden" name="_subject" value="New battery calculator lead!">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" id="hiddenKwp" name="System size (kWp)" value="">
+      <input type="hidden" id="hiddenBattery" name="Battery size (kWh)" value="">
+      <input type="hidden" id="hiddenUsage" name="Annual usage (kWh)" value="">
+      <input type="hidden" id="hiddenSelfSuff" name="Self-sufficiency with battery (%)" value="">
+      <input type="hidden" id="hiddenBlackout" name="Blackout backup hours" value="">
+
+      <label class="form-label" for="name">Name</label>
+      <input type="text" id="name" name="Name" required>
+
+      <label class="form-label" for="email">Email</label>
+      <input type="email" id="email" name="Email" required>
+
+      <label class="form-label" for="battery">Do you already have a battery?</label>
+      <input type="text" id="battery" name="Has battery" placeholder="No / Not yet / Already have one">
+
+      <label class="form-label" for="postcode">Rough location (e.g. city or postcode area)</label>
+      <input type="text" id="postcode" name="Location">
+
+      <button type="submit">Send Me My Full Report</button>
+    </form>
+    <div class="disclaimer">This is an independent estimate, not a sales call. No obligation.</div>
+  </div>
+
+</div>
+
+<script>
+  const kwp = document.getElementById('kwp');
+  const batterySize = document.getElementById('batterySize');
+  const annualUsage = document.getElementById('annualUsage');
+  const loadProfile = document.getElementById('loadProfile');
+
+  function calc() {
+    const kwpVal = parseFloat(kwp.value);
+    const batteryVal = parseFloat(batterySize.value);
+    const usageVal = parseFloat(annualUsage.value);
+
+    document.getElementById('kwpVal').textContent = kwpVal.toFixed(1);
+    document.getElementById('batteryVal').textContent = batteryVal.toFixed(1);
+    document.getElementById('usageVal').textContent = usageVal.toLocaleString();
+
+    const annualGen = kwpVal * 900; // kWh/year, 900 kWh per kWp UK average
+
+    // Self-sufficiency: share of total household USE covered by own solar.
+    // Self-consumption without a battery holds at ~37.5% regardless of battery size
+    // (there's no battery yet to change anything).
+    // With a battery, self-consumption scales with battery size relative to system
+    // size, with diminishing returns. This curve is fitted to three independent,
+    // peer-reviewed reference points rather than a single assumption:
+    //  - 3 kWh/kWp -> 70-85% self-consumption (JRC/EU study, Weniger et al.)
+    //  - 6.3 kWh on a 10kWp system -> >67% (Fronius Solar.creator case study)
+    //  - 9.5 kWh on a 10kWp system -> >75%, with explicitly diminishing returns beyond this (same study)
+    const baseSelfConsumption = 0.375;
+    const ceiling = 0.7811;
+    const k = 2.2447;
+    const batteryToSystemRatio = batteryVal / kwpVal;
+    const afterSelfConsumption = baseSelfConsumption + (ceiling - baseSelfConsumption) * (1 - Math.exp(-k * batteryToSystemRatio));
+
+    const selfSuffBefore = Math.min(100, (annualGen * baseSelfConsumption / usageVal) * 100);
+    const selfSuffAfter = Math.min(100, (annualGen * afterSelfConsumption / usageVal) * 100);
+    document.getElementById('selfSuffBefore').textContent = selfSuffBefore.toFixed(0);
+    document.getElementById('selfSuffAfter').textContent = selfSuffAfter.toFixed(0);
+    document.getElementById('selfSuffAfter2').textContent = selfSuffAfter.toFixed(0);
+
+    // Blackout backup duration: usable capacity / load draw rate
+    // 90% usable depth of discharge is a standard assumption for LFP batteries
+    const usableCapacity = batteryVal * 0.9;
+    const loadKw = parseFloat(loadProfile.value);
+    const hours = usableCapacity / loadKw;
+    document.getElementById('blackoutHours').textContent = hours.toFixed(1);
+
+    document.getElementById('hiddenKwp').value = kwpVal;
+    document.getElementById('hiddenBattery').value = batteryVal;
+    document.getElementById('hiddenUsage').value = usageVal;
+    document.getElementById('hiddenSelfSuff').value = selfSuffAfter.toFixed(0);
+    document.getElementById('hiddenBlackout').value = hours.toFixed(1);
+  }
+
+  [kwp, batterySize, annualUsage, loadProfile].forEach(el => el.addEventListener('input', calc));
+  calc();
+</script>
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', 'YOUR_PIXEL_ID_HERE');
+fbq('track', 'PageView');
+</script>
+<!-- End Meta Pixel Code -->
+
+</body>
+</html>
