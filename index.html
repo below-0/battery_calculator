@@ -38,19 +38,16 @@
   h1 { font-size: 26px; line-height: 1.25; margin: 0 0 10px; font-weight: 700; }
   .sub { color: var(--muted); font-size: 15px; margin-bottom: 28px; }
 
-  .toggles {
-    display: flex; gap: 12px; margin-bottom: 20px;
-  }
-  .toggle-card {
-    flex: 1; background: var(--panel-solid); border: 1px solid var(--border);
-    border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+  .toggle-section {
+    background: var(--panel-solid); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 16px;
     transition: opacity 0.2s;
   }
-  .toggle-card.disabled { opacity: 0.4; }
+  .toggle-section.disabled { opacity: 0.4; }
   .toggle-row {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
   }
-  .toggle-label { font-size: 14px; font-weight: 600; }
+  .toggle-headline { font-size: 17px; font-weight: 700; line-height: 1.3; }
   .switch {
     position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0;
   }
@@ -140,43 +137,46 @@
   <h1>See the journey from full grid dependence to real energy independence.</h1>
   <p class="sub">Flip the switches below to see what changes at each stage — for your own home.</p>
 
-  <div class="toggles">
-    <div class="toggle-card">
-      <div class="toggle-row">
-        <span class="toggle-label">☀️ Solar Panels</span>
-        <label class="switch">
-          <input type="checkbox" id="solarToggle">
-          <span class="slider-toggle"></span>
-        </label>
-      </div>
-    </div>
-    <div class="toggle-card disabled" id="batteryCard">
-      <div class="toggle-row">
-        <span class="toggle-label">🔋 Home Battery</span>
-        <label class="switch">
-          <input type="checkbox" id="batteryToggle" disabled>
-          <span class="slider-toggle"></span>
-        </label>
-      </div>
-    </div>
-  </div>
-
   <div class="card">
-    <div class="field" id="kwpField" style="display:none;">
-      <label>Solar system size <span class="val" id="kwpVal">4.0</span> kWp</label>
-      <input type="range" id="kwp" min="1" max="10" step="0.5" value="4">
-      <div class="hint">Not sure? A typical UK 3-bed semi has a 3.5–4.5 kWp system.</div>
-    </div>
-    <div class="field" id="batteryField" style="display:none;">
-      <label>Battery size <span class="val" id="batteryVal">6.0</span> kWh</label>
-      <input type="range" id="batterySize" min="2" max="16" step="0.5" value="6">
-    </div>
     <div class="field">
       <label>Your home's annual electricity use <span class="val" id="usageVal">3,400</span> kWh</label>
       <input type="range" id="annualUsage" min="1500" max="6000" step="100" value="3400">
       <div class="hint">Check a recent bill for your exact figure. 3,400 kWh/year is the current UK average.</div>
     </div>
-    <div class="field" id="loadField" style="display:none;">
+  </div>
+
+  <div class="toggle-section" id="solarCard">
+    <div class="toggle-row">
+      <span class="toggle-headline">Adding solar panels to your home</span>
+      <label class="switch">
+        <input type="checkbox" id="solarToggle">
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card field" id="kwpField" style="display:none;">
+    <label>Solar system size <span class="val" id="kwpVal">4.0</span> kWp</label>
+    <input type="range" id="kwp" min="1" max="10" step="0.5" value="4">
+    <div class="hint">Not sure? A typical UK 3-bed semi has a 3.5–4.5 kWp system.</div>
+  </div>
+
+  <div class="toggle-section disabled" id="batteryCard">
+    <div class="toggle-row">
+      <span class="toggle-headline">Add a battery to your home</span>
+      <label class="switch">
+        <input type="checkbox" id="batteryToggle" disabled>
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card" id="batteryDetailsCard" style="display:none;">
+    <div class="field" id="batteryField">
+      <label>Battery size <span class="val" id="batteryVal">6.0</span> kWh</label>
+      <input type="range" id="batterySize" min="2" max="16" step="0.5" value="6">
+    </div>
+    <div class="field" id="loadField">
       <label style="margin-bottom:10px;">In a blackout, I'd want to keep running:</label>
       <select id="loadProfile">
         <option value="0.4">Essentials only — fridge, wifi, some lights, phone charging</option>
@@ -220,11 +220,25 @@
       <label class="form-label" for="email">Email</label>
       <input type="email" id="email" name="Email" required>
 
-      <label class="form-label" for="battery">Do you already have a battery?</label>
-      <input type="text" id="battery" name="Has battery" placeholder="No / Not yet / Already have one">
+      <label class="form-label" for="phone">Phone (optional)</label>
+      <input type="text" id="phone" name="Phone">
+
+      <label class="form-label" for="hasSolar">Do you have solar?</label>
+      <select id="hasSolar" name="Has solar" required>
+        <option value="">Select...</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <label class="form-label" for="hasBattery">Do you have a battery?</label>
+      <select id="hasBattery" name="Has battery" required>
+        <option value="">Select...</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
       <label class="form-label" for="postcode">Rough location (e.g. city or postcode area)</label>
-      <input type="text" id="postcode" name="Location">
+      <input type="text" id="postcode" name="Location" required>
 
       <button type="submit">Send Me My Full Report</button>
     </form>
@@ -249,16 +263,14 @@
     batteryCard.classList.toggle('disabled', !on);
     if (!on) {
       batteryToggle.checked = false;
-      document.getElementById('batteryField').style.display = 'none';
-      document.getElementById('loadField').style.display = 'none';
+      document.getElementById('batteryDetailsCard').style.display = 'none';
     }
     calc();
   });
 
   batteryToggle.addEventListener('change', () => {
     const on = batteryToggle.checked;
-    document.getElementById('batteryField').style.display = on ? 'block' : 'none';
-    document.getElementById('loadField').style.display = on ? 'block' : 'none';
+    document.getElementById('batteryDetailsCard').style.display = on ? 'block' : 'none';
     calc();
   });
 
@@ -349,4 +361,3 @@ fbq('track', 'PageView');
 
 </body>
 </html>
-
