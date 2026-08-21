@@ -94,6 +94,13 @@
   .results.state-full { border-color: #4ade8033; }
 
   .stat-row { display: flex; gap: 16px; margin-bottom: 20px; }
+  .bill-stat { text-align: center; margin-bottom: 22px; }
+  .bill-num {
+    font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.05;
+    color: var(--text); transition: color 0.3s;
+  }
+  .bill-num.negative { color: var(--green); }
+  .bill-lbl { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .stat { flex: 1; text-align: center; }
   .stat .num {
     font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.05;
@@ -186,6 +193,10 @@
   </div>
 
   <div class="results state-grid" id="resultsPanel">
+    <div class="bill-stat">
+      <div class="bill-num" id="billNum">£0</div>
+      <div class="bill-lbl" id="billLbl">estimated electricity cost per year</div>
+    </div>
     <div class="stat-row">
       <div class="stat">
         <div class="num dim" id="selfSuffNum">0%</div>
@@ -197,6 +208,9 @@
       </div>
     </div>
     <div class="message state-grid" id="stateMessage"></div>
+    <div class="note" style="font-size:12px; color:var(--muted); margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
+      Bill estimate assumes a typical import rate of 25p/kWh and export rate of 15p/kWh — your actual tariff may differ.
+    </div>
   </div>
 
   <div class="card">
@@ -213,6 +227,7 @@
       <input type="hidden" id="hiddenUsage" name="Annual usage (kWh)" value="">
       <input type="hidden" id="hiddenSelfSuff" name="Self-sufficiency (%)" value="">
       <input type="hidden" id="hiddenBlackout" name="Blackout backup hours" value="">
+      <input type="hidden" id="hiddenBill" name="Estimated annual bill (GBP)" value="">
 
       <label class="form-label" for="name">Name</label>
       <input type="text" id="name" name="Name" required>
@@ -290,9 +305,15 @@
     const msg = document.getElementById('stateMessage');
     const selfSuffEl = document.getElementById('selfSuffNum');
     const blackoutEl = document.getElementById('blackoutNum');
+    const billEl = document.getElementById('billNum');
+    const billLblEl = document.getElementById('billLbl');
+
+    const importRate = 0.25;
+    const exportRate = 0.15;
 
     let selfSuff = 0;
     let blackoutHours = 0;
+    let bill = usageVal * importRate;
     let state = 'grid';
 
     if (!solarOn) {
@@ -300,12 +321,17 @@
       state = 'grid';
       selfSuff = 0;
       blackoutHours = 0;
+      bill = usageVal * importRate;
       msg.innerHTML = "Right now you're <strong>100% dependent on the grid</strong> — for everyday power, and completely powerless in a blackout.";
     } else if (solarOn && !batteryOn) {
       // Stage 2: Solar only — the key honest reveal
       state = 'solar';
       const annualGen = kwpVal * 900;
-      selfSuff = Math.min(100, (annualGen * 0.375 / usageVal) * 100);
+      const selfConsumedKwh = Math.min(annualGen * 0.375, usageVal);
+      const exportedKwh = annualGen - selfConsumedKwh;
+      const importNeededKwh = Math.max(0, usageVal - selfConsumedKwh);
+      bill = (importNeededKwh * importRate) - (exportedKwh * exportRate);
+      selfSuff = Math.min(100, (selfConsumedKwh / usageVal) * 100);
       blackoutHours = 0;
       msg.innerHTML = `Your panels are already covering roughly <strong>${selfSuff.toFixed(0)}% of your electricity</strong> — real, working savings. But in a blackout, you'd still have <strong>zero backup power, even in full sun</strong>. Grid-tied solar is legally required to shut off automatically when the grid goes down, to protect utility workers. Without a battery, solar alone can't change that.`;
     } else {
@@ -317,13 +343,27 @@
       const k = 2.2447;
       const ratio = batteryVal / kwpVal;
       const afterSC = baseSelfConsumption + (ceiling - baseSelfConsumption) * (1 - Math.exp(-k * ratio));
-      selfSuff = Math.min(100, (annualGen * afterSC / usageVal) * 100);
+      const selfConsumedKwh = Math.min(annualGen * afterSC, usageVal);
+      const exportedKwh = annualGen - selfConsumedKwh;
+      const importNeededKwh = Math.max(0, usageVal - selfConsumedKwh);
+      bill = (importNeededKwh * importRate) - (exportedKwh * exportRate);
+      selfSuff = Math.min(100, (selfConsumedKwh / usageVal) * 100);
 
       const usableCapacity = batteryVal * 0.9;
       const loadKw = parseFloat(loadProfile.value);
       blackoutHours = usableCapacity / loadKw;
 
       msg.innerHTML = `Now you're covering up to <strong>${selfSuff.toFixed(0)}% of your electricity</strong> from your own panels, and you'd have <strong>${blackoutHours.toFixed(1)} hours of backup power</strong> if the grid goes down — even overnight or on a cloudy day, using stored charge alone.`;
+    }
+
+    if (bill < 0) {
+      billEl.textContent = '£' + Math.abs(bill).toFixed(0);
+      billEl.classList.add('negative');
+      billLblEl.textContent = "estimated credit per year — you'd be earning more than you spend";
+    } else {
+      billEl.textContent = '£' + bill.toFixed(0);
+      billEl.classList.remove('negative');
+      billLblEl.textContent = 'estimated electricity cost per year';
     }
 
     selfSuffEl.textContent = selfSuff.toFixed(0) + '%';
@@ -340,6 +380,7 @@
     document.getElementById('hiddenUsage').value = usageVal;
     document.getElementById('hiddenSelfSuff').value = selfSuff.toFixed(0);
     document.getElementById('hiddenBlackout').value = blackoutHours.toFixed(1);
+    document.getElementById('hiddenBill').value = bill.toFixed(0);
   }
 
   [kwp, batterySize, annualUsage, loadProfile].forEach(el => el.addEventListener('input', calc));
