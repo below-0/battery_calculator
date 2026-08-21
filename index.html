@@ -93,7 +93,8 @@
   .stat-row { display: flex; gap: 16px; margin-bottom: 12px; }
   .stat { flex: 1; text-align: center; }
   .stat .num {
-    font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.05;
+    font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.05;
+    white-space: nowrap;
   }
   .stat .num.dim { color: var(--muted); }
   .stat .num.warn { color: var(--red); }
@@ -278,6 +279,15 @@
     calc();
   });
 
+  function fitText(el, maxSize, minSize) {
+    let size = maxSize;
+    el.style.fontSize = size + 'px';
+    while (el.scrollWidth > el.parentElement.clientWidth && size > minSize) {
+      size -= 1;
+      el.style.fontSize = size + 'px';
+    }
+  }
+
   function calc() {
     const solarOn = solarToggle.checked;
     const batteryOn = batteryToggle.checked;
@@ -359,6 +369,10 @@
     blackoutEl.textContent = blackoutHours.toFixed(1) + ' hrs';
     selfSuffEl.className = 'num ' + (state === 'grid' ? 'dim' : state === 'solar' ? '' : 'good');
     blackoutEl.className = 'num ' + (state === 'full' ? 'good' : state === 'solar' ? 'warn' : 'dim');
+
+    fitText(billEl, 30, 16);
+    fitText(selfSuffEl, 30, 16);
+    fitText(blackoutEl, 30, 16);
 
     panel.className = 'results state-' + state;
     msg.className = 'message state-' + state;
