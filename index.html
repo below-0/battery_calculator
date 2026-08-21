@@ -91,10 +91,10 @@
   .results.state-full { border-color: #4ade8033; }
 
   .stat-row { display: flex; gap: 16px; margin-bottom: 12px; }
-  .stat { flex: 1; text-align: center; }
+  .stat { flex: 1 1 0; min-width: 0; text-align: center; }
   .stat .num {
     font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.05;
-    white-space: nowrap;
+    white-space: nowrap; overflow: hidden; display: block; min-height: 32px;
   }
   .stat .num.dim { color: var(--muted); }
   .stat .num.warn { color: var(--red); }
@@ -280,8 +280,8 @@
   });
 
   function fitText(el, maxSize, minSize) {
+    el.style.fontSize = maxSize + 'px';
     let size = maxSize;
-    el.style.fontSize = size + 'px';
     while (el.scrollWidth > el.parentElement.clientWidth && size > minSize) {
       size -= 1;
       el.style.fontSize = size + 'px';
