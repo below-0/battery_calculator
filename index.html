@@ -211,7 +211,7 @@
     <div class="card-title">Want your full personalised report?</div>
     <p class="card-sub">I'll send over your numbers above, plus your potential annual savings — including whether a smart export tariff could increase that further for your setup.</p>
 
-    <form action="https://formsubmit.co/trybjjpenang@gmail.com" method="POST">
+    <form id="leadForm" action="https://formsubmit.co/trybjjpenang@gmail.com" method="POST">
       <input type="hidden" name="_next" value="https://batterycalculator.co.uk/battery-thanks.html">
       <input type="hidden" name="_subject" value="New battery calculator lead!">
       <input type="hidden" name="_captcha" value="false">
@@ -392,6 +392,15 @@
 
   [kwp, batterySize, annualUsage, loadProfile].forEach(el => el.addEventListener('input', calc));
   calc();
+
+  // Give each lead email a unique subject line so Gmail doesn't group them
+  // into one continuous conversation thread.
+  document.getElementById('leadForm').addEventListener('submit', () => {
+    const nameVal = document.getElementById('name').value || 'Unknown';
+    const now = new Date();
+    const stamp = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'});
+    document.querySelector('input[name="_subject"]').value = `New lead: ${nameVal} — ${stamp}`;
+  });
 </script>
 
 <script>
