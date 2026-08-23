@@ -9,6 +9,7 @@
     --bg: #0a0e14;
     --panel-solid: #131a26;
     --border: #23303f;
+    --border-strong: #4a5d75;
     --text: #e8ecf1;
     --muted: #8a96a6;
     --amber: #f2a93c;
@@ -76,8 +77,8 @@
   input[type="range"] { width: 100%; accent-color: var(--amber); height: 4px; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
   select {
-    width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
-    background: #0e131c; color: var(--text); font-size: 15px;
+    width: 100%; padding: 12px; border-radius: 8px; border: 1.5px solid var(--border-strong);
+    background: #171e2b; color: var(--text); font-size: 15px;
   }
 
   .results {
@@ -116,8 +117,11 @@
   form { display: flex; flex-direction: column; gap: 12px; }
   form label.form-label { font-size: 14px; color: var(--muted); margin-bottom: -6px; }
   form input[type=text], form input[type=email] {
-    width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border);
-    background: #0e131c; color: var(--text); font-size: 16px;
+    width: 100%; padding: 12px 14px; border-radius: 8px; border: 1.5px solid var(--border-strong);
+    background: #171e2b; color: var(--text); font-size: 16px;
+  }
+  form input[type=text]:focus, form input[type=email]:focus, select:focus {
+    outline: none; border-color: var(--amber);
   }
   button {
     margin-top: 6px; padding: 15px; border-radius: 10px; border: none;
