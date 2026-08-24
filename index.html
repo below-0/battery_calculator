@@ -116,13 +116,18 @@
   .card-sub { color: var(--muted); font-size: 14px; margin-top: 0; margin-bottom: 16px; }
   form { display: flex; flex-direction: column; gap: 12px; }
   form label.form-label { font-size: 14px; color: var(--muted); margin-bottom: -6px; }
-  form input[type=text], form input[type=email] {
+  form input[type=text], form input[type=email], form input[type=number] {
     width: 100%; padding: 12px 14px; border-radius: 8px; border: 1.5px solid var(--border-strong);
     background: #171e2b; color: var(--text); font-size: 16px;
   }
-  form input[type=text]:focus, form input[type=email]:focus, select:focus {
+  form input[type=text]:focus, form input[type=email]:focus, form input[type=number]:focus, select:focus {
     outline: none; border-color: var(--amber);
   }
+  form input[type=number]::-webkit-outer-spin-button,
+  form input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  form input[type=number] { -moz-appearance: textfield; }
   button {
     margin-top: 6px; padding: 15px; border-radius: 10px; border: none;
     background: var(--amber); color: #17110a; font-size: 16px; font-weight: 700; cursor: pointer;
@@ -138,7 +143,7 @@
 
   <div class="eyebrow">Solar + Battery Storage</div>
   <h1>How energy independent is your home?</h1>
-  <p class="sub">See how adding solar and battery to your home could reduce your dependence on the national grid, while reducing your bills and giving you resilience against power outages.</p>
+  <p class="sub">See how adding a battery to your solar panels could let you use more of the energy you already produce — reducing your dependence on the grid, cutting your bills, and adding resilience against power outages.</p>
 
   <div class="card">
     <div class="field">
@@ -150,7 +155,7 @@
 
   <div class="card" id="solarCard">
     <div class="toggle-row">
-      <span class="toggle-headline">Adding solar panels to your home</span>
+      <span class="toggle-headline">With solar panels</span>
       <label class="switch">
         <input type="checkbox" id="solarToggle">
         <span class="slider-toggle"></span>
@@ -165,7 +170,7 @@
 
   <div class="card disabled" id="batteryCard">
     <div class="toggle-row">
-      <span class="toggle-headline">Add a battery to your home</span>
+      <span class="toggle-headline">With a battery</span>
       <label class="switch">
         <input type="checkbox" id="batteryToggle" disabled>
         <span class="slider-toggle"></span>
@@ -209,19 +214,22 @@
 
   <div class="card">
     <div class="card-title">Want your full personalised report?</div>
-    <p class="card-sub">I'll send over your numbers above, plus your potential annual savings — including whether a smart export tariff could increase that further for your setup.</p>
+    <p class="card-sub">Enter your real solar size and electricity use below (we've pre-filled them from the sliders above, but feel free to correct them) and I'll send over what size battery I'd actually recommend for your setup, plus your potential savings, energy independence, and blackout resilience.</p>
 
     <form id="leadForm" action="https://formsubmit.co/trybjjpenang@gmail.com" method="POST">
       <input type="hidden" name="_next" value="https://batterycalculator.co.uk/battery-thanks.html">
       <input type="hidden" name="_subject" value="New battery calculator lead!">
       <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" id="hiddenState" name="Stage viewed" value="">
-      <input type="hidden" id="hiddenKwp" name="System size (kWp)" value="">
-      <input type="hidden" id="hiddenBattery" name="Battery size (kWh)" value="">
-      <input type="hidden" id="hiddenUsage" name="Annual usage (kWh)" value="">
-      <input type="hidden" id="hiddenSelfSuff" name="Self-sufficiency (%)" value="">
-      <input type="hidden" id="hiddenBlackout" name="Blackout backup hours" value="">
-      <input type="hidden" id="hiddenBill" name="Estimated annual bill (GBP)" value="">
+      <input type="hidden" id="hiddenState" name="Stage explored" value="">
+      <input type="hidden" id="hiddenSelfSuff" name="Self-sufficiency explored (%)" value="">
+      <input type="hidden" id="hiddenBlackout" name="Blackout backup explored (hours)" value="">
+      <input type="hidden" id="hiddenBill" name="Estimated annual bill explored (GBP)" value="">
+
+      <label class="form-label" for="realKwp">Your actual solar size, kWp</label>
+      <input type="number" id="realKwp" name="Real system size (kWp)" step="0.1" min="0" required>
+
+      <label class="form-label" for="realUsage">Your actual annual electricity use, kWh (check a recent bill)</label>
+      <input type="number" id="realUsage" name="Real annual usage (kWh)" step="10" min="0" required>
 
       <label class="form-label" for="name">Name</label>
       <input type="text" id="name" name="Name" required>
@@ -234,13 +242,6 @@
 
       <label class="form-label" for="hasSolar">Do you have solar?</label>
       <select id="hasSolar" name="Has solar" required>
-        <option value="">Select...</option>
-        <option value="Yes">Yes</option>
-        <option value="No">No</option>
-      </select>
-
-      <label class="form-label" for="hasBattery">Do you have a battery?</label>
-      <select id="hasBattery" name="Has battery" required>
         <option value="">Select...</option>
         <option value="Yes">Yes</option>
         <option value="No">No</option>
@@ -264,6 +265,12 @@
   const batterySize = document.getElementById('batterySize');
   const annualUsage = document.getElementById('annualUsage');
   const loadProfile = document.getElementById('loadProfile');
+  const realKwp = document.getElementById('realKwp');
+  const realUsage = document.getElementById('realUsage');
+
+  [realKwp, realUsage].forEach(el => {
+    el.addEventListener('input', () => { el.dataset.touched = 'true'; });
+  });
 
   solarToggle.addEventListener('change', () => {
     const on = solarToggle.checked;
@@ -336,7 +343,7 @@
       bill = (importNeededKwh * importRate) - (exportedKwh * exportRate);
       selfSuff = Math.min(100, (selfConsumedKwh / usageVal) * 100);
       blackoutHours = 0;
-      msg.innerHTML = `Your panels are already covering roughly <strong>${selfSuff.toFixed(0)}% of your electricity</strong> — real, working savings. But in a blackout, you'd still have <strong>zero backup power, even in full sun</strong>. Grid-tied solar is legally required to shut off automatically when the grid goes down, to protect utility workers. Without a battery, solar alone can't change that.`;
+      msg.innerHTML = `Your panels are already covering roughly <strong>${selfSuff.toFixed(0)}% of your electricity</strong> — real, working savings. But in a blackout, you'd still have <strong>zero backup power, even in full sun</strong>. Without a battery, solar alone can't change that.`;
     } else {
       // Stage 3: Solar + Battery
       state = 'full';
@@ -356,7 +363,7 @@
       const loadKw = parseFloat(loadProfile.value);
       blackoutHours = usableCapacity / loadKw;
 
-      msg.innerHTML = `Now you're covering up to <strong>${selfSuff.toFixed(0)}% of your electricity</strong> from your own panels, and you'd have <strong>${blackoutHours.toFixed(1)} hours of backup power</strong> if the grid goes down — even overnight or on a cloudy day, using stored charge alone.`;
+      msg.innerHTML = `Up to <strong>${selfSuff.toFixed(0)}% of your own electricity</strong>, with at least <strong>${blackoutHours.toFixed(1)} hours of backup</strong> — and daylight keeps the battery recharging from there.`;
     }
 
     if (bill < 0) {
@@ -382,12 +389,15 @@
     msg.className = 'message state-' + state;
 
     document.getElementById('hiddenState').value = state;
-    document.getElementById('hiddenKwp').value = solarOn ? kwpVal : 0;
-    document.getElementById('hiddenBattery').value = batteryOn ? batteryVal : 0;
-    document.getElementById('hiddenUsage').value = usageVal;
     document.getElementById('hiddenSelfSuff').value = selfSuff.toFixed(0);
     document.getElementById('hiddenBlackout').value = blackoutHours.toFixed(1);
     document.getElementById('hiddenBill').value = bill.toFixed(0);
+
+    // Pre-fill the report's editable number fields from the sliders,
+    // but only until the person has manually typed their own value in —
+    // after that, stop overwriting so their real input isn't clobbered.
+    if (!realKwp.dataset.touched) realKwp.value = kwpVal.toFixed(1);
+    if (!realUsage.dataset.touched) realUsage.value = usageVal;
   }
 
   [kwp, batterySize, annualUsage, loadProfile].forEach(el => el.addEventListener('input', calc));
