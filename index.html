@@ -139,6 +139,16 @@
 </head>
 <body>
 
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+<form id="googleFormBridge" action="https://docs.google.com/forms/d/e/1FAIpQLSe8XVbRG_XQfKFRGRCl_jtzZNTY2cHhwwIy3KRnaHp5emCKtA/formResponse" method="POST" target="hidden_iframe" style="display:none;">
+  <input type="text" name="entry.1061029909" id="gf_name">
+  <input type="text" name="entry.1676280805" id="gf_email">
+  <input type="text" name="entry.1303832695" id="gf_kwp">
+  <input type="text" name="entry.1170238383" id="gf_usage">
+  <input type="text" name="entry.1870469334" id="gf_hassolar">
+  <input type="text" name="entry.850756602" id="gf_location">
+</form>
+
 <div class="calc-wrap">
 
   <div class="eyebrow">Solar + Battery Storage</div>
@@ -414,21 +424,19 @@
     // Fire a parallel copy of the submission directly into a Google Form,
     // which is natively linked to a Google Sheet — that sheet's own Apps
     // Script then does the calculation and sends the report. Fully native
-    // to Google, no third-party connector involved. Uses sendBeacon rather
-    // than fetch, since fetch can be cut off when the browser immediately
-    // navigates away to FormSubmit right after this handler runs —
-    // sendBeacon is built specifically to survive that.
+    // to Google, no third-party connector involved. Submitted via a hidden
+    // form targeting a hidden iframe, rather than sendBeacon — this behaves
+    // exactly like a genuine browser form submission, which Google Forms
+    // reliably accepts (sendBeacon submissions were found to be silently
+    // dropped in testing).
     try {
-      const params = new URLSearchParams({
-        'entry.1061029909': nameVal,
-        'entry.1676280805': document.getElementById('email').value,
-        'entry.1303832695': document.getElementById('realKwp').value,
-        'entry.1170238383': document.getElementById('realUsage').value,
-        'entry.1870469334': document.getElementById('hasSolar').value,
-        'entry.850756602': document.getElementById('postcode').value
-      });
-      const payload = new Blob([params.toString()], { type: 'application/x-www-form-urlencoded' });
-      navigator.sendBeacon('https://docs.google.com/forms/d/e/1FAIpQLSe8XVbRG_XQfKFRGRCl_jtzZNTY2cHhwwIy3KRnaHp5emCKtA/formResponse', payload);
+      document.getElementById('gf_name').value = nameVal;
+      document.getElementById('gf_email').value = document.getElementById('email').value;
+      document.getElementById('gf_kwp').value = document.getElementById('realKwp').value;
+      document.getElementById('gf_usage').value = document.getElementById('realUsage').value;
+      document.getElementById('gf_hassolar').value = document.getElementById('hasSolar').value;
+      document.getElementById('gf_location').value = document.getElementById('postcode').value;
+      document.getElementById('googleFormBridge').submit();
     } catch (e) { /* fail silently — the real form submission still proceeds */ }
   });
 </script>
