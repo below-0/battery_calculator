@@ -139,16 +139,6 @@
 </head>
 <body>
 
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-<form id="googleFormBridge" action="https://docs.google.com/forms/d/e/1FAIpQLSe8XVbRG_XQfKFRGRCl_jtzZNTY2cHhwwIy3KRnaHp5emCKtA/formResponse" method="POST" target="hidden_iframe" style="display:none;">
-  <input type="text" name="entry.1061029909" id="gf_name">
-  <input type="text" name="entry.1676280805" id="gf_email">
-  <input type="text" name="entry.1303832695" id="gf_kwp">
-  <input type="text" name="entry.1170238383" id="gf_usage">
-  <input type="text" name="entry.1870469334" id="gf_hassolar">
-  <input type="text" name="entry.850756602" id="gf_location">
-</form>
-
 <div class="calc-wrap">
 
   <div class="eyebrow">Solar + Battery Storage</div>
@@ -421,22 +411,30 @@
     const stamp = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'});
     document.querySelector('input[name="_subject"]').value = `New lead: ${nameVal} — ${stamp}`;
 
-    // Fire a parallel copy of the submission directly into a Google Form,
-    // which is natively linked to a Google Sheet — that sheet's own Apps
-    // Script then does the calculation and sends the report. Fully native
-    // to Google, no third-party connector involved. Submitted via a hidden
-    // form targeting a hidden iframe, rather than sendBeacon — this behaves
-    // exactly like a genuine browser form submission, which Google Forms
-    // reliably accepts (sendBeacon submissions were found to be silently
-    // dropped in testing).
+    // Fire a parallel copy of the submission directly to a Google Apps
+    // Script Web App, which calculates the report and sends it immediately
+    // — no Google Forms middleman (which was silently rejecting cross-site
+    // submissions), no polling delay. mode: 'no-cors' is required since
+    // Apps Script Web Apps don't return CORS headers for cross-origin
+    // requests — we can't read the response, but the request still reaches
+    // and runs the script. keepalive ensures it isn't cut off by the page
+    // navigating away to FormSubmit right after.
     try {
-      document.getElementById('gf_name').value = nameVal;
-      document.getElementById('gf_email').value = document.getElementById('email').value;
-      document.getElementById('gf_kwp').value = document.getElementById('realKwp').value;
-      document.getElementById('gf_usage').value = document.getElementById('realUsage').value;
-      document.getElementById('gf_hassolar').value = document.getElementById('hasSolar').value;
-      document.getElementById('gf_location').value = document.getElementById('postcode').value;
-      document.getElementById('googleFormBridge').submit();
+      const params = new URLSearchParams({
+        name: nameVal,
+        email: document.getElementById('email').value,
+        kwp: document.getElementById('realKwp').value,
+        usage: document.getElementById('realUsage').value,
+        hasSolar: document.getElementById('hasSolar').value,
+        location: document.getElementById('postcode').value
+      });
+      fetch('https://script.google.com/macros/s/AKfycbwZ-OIoAwefqG_opkSdJ_7EjVh4kuX4CMlgEoeWyIvMkc0LQp7zKwsZyd8UL1Jw9117YA/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+      });
     } catch (e) { /* fail silently — the real form submission still proceeds */ }
   });
 </script>
